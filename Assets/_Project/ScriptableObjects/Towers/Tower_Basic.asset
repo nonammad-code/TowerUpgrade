@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe567dc5a2f7e4e1c974a0b9f0419cd9, type: 3}
   m_Name: Tower_Basic
   m_EditorClassIdentifier: Assembly-CSharp::TowerData
-  range: 0
-  fireRate: 0
-  cost: 0
-  upgradeCost: 0
+  range: 6
+  fireRate: 1
+  cost: 50
+  upgradeCost: 75
   projectileData: {fileID: 11400000, guid: 87e4309ea9a01434b869382a2592ef78, type: 2}
   towerPrefab: {fileID: 8557094523620373942, guid: 0cc629a10af02473f88ebba6c91e3aff, type: 3}

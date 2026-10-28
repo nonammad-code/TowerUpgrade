@@ -63,6 +63,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dce99f8d256956b469692ebc85d26566, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3806521292815902256}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dce99f8d256956b469692ebc85d26566, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 681629863743473372}
   m_SourcePrefab: {fileID: 100100000, guid: dce99f8d256956b469692ebc85d26566, type: 3}
 --- !u!1 &6694689367086326308 stripped
 GameObject:
@@ -90,3 +93,17 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0258324, y: 0.010307202, z: 0.028885007}
   m_Center: {x: 0, y: 1.1641523e-10, z: 0.015781503}
+--- !u!114 &681629863743473372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6694689367086326308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa15de06fd53446d6b1f7eb2aaef0e39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyController
+  waypointReachDistance: 0.1
+  rotateToMovement: 1
