@@ -111,7 +111,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e57e060ddb8c4570b7f78d70a6c44e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretController
-  towerData: {fileID: 0}
+  towerData: {fileID: 11400000, guid: 34b42fb2643e6483ab75efa16c266bf9, type: 2}
   firePoint: {fileID: 2024737628829181124}
   rotatingPart: {fileID: 9046386455406276364}
   enemyLayer:
