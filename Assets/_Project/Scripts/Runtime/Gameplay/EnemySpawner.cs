@@ -135,7 +135,10 @@ public class EnemySpawner : MonoBehaviour
         if (entry == null) return;
 
         EnemyController enemy = entry.Pool.Get();
+        // Сначала ставим монстра в стартовую точку, и только потом включаем объект,
+        // чтобы турели не видели его на старой позиции (из префаба или с места гибели).
         enemy.Init(data, waypoints, entry.Release);
+        enemy.gameObject.SetActive(true);
     }
 
     private EnemyPool GetOrCreatePool(EnemyData data)
@@ -152,7 +155,7 @@ public class EnemySpawner : MonoBehaviour
         var entry = new EnemyPool();
         entry.Pool = new ObjectPool<EnemyController>(
             createFunc: () => CreateEnemy(data),
-            actionOnGet: e => e.gameObject.SetActive(true),
+            actionOnGet: null, // объект включается в Spawn() после Init
             actionOnRelease: e => e.gameObject.SetActive(false),
             actionOnDestroy: e => { if (e != null) Destroy(e.gameObject); },
             collectionCheck: false,
@@ -169,6 +172,7 @@ public class EnemySpawner : MonoBehaviour
         GameObject go = Instantiate(data.prefab, enemiesParent);
         if (!go.TryGetComponent(out EnemyController enemy))
             enemy = go.AddComponent<EnemyController>();
+        go.SetActive(false);
         return enemy;
     }
 }

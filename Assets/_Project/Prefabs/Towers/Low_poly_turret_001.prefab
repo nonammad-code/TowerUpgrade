@@ -119,6 +119,9 @@ MonoBehaviour:
     m_Bits: 64
   retargetInterval: 0.2
   rotationSpeed: 360
+  aimTolerance: 8
+  autoDetectMuzzle: 1
+  muzzleHeightFraction: 0
 --- !u!4 &9046386455406276364 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e85ab475369fab440bf989a8403aebc0, type: 3}

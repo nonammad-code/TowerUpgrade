@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -17,6 +18,13 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// </summary>
     public static event Action<int> OnEnemyReachedBase;
 
+    private static readonly List<EnemyController> _activeEnemies = new List<EnemyController>(64);
+
+    /// <summary>
+    /// Все активные на сцене монстры (для поиска целей турелями без физики и аллокаций).
+    /// </summary>
+    public static IReadOnlyList<EnemyController> ActiveEnemies => _activeEnemies;
+
     [Tooltip("Расстояние до точки, при котором она считается достигнутой.")]
     [SerializeField] private float waypointReachDistance = 0.1f;
 
@@ -31,9 +39,27 @@ public class EnemyController : MonoBehaviour, IDamageable
     private int _waypointIndex;
     private bool _active;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        _activeEnemies.Clear();
+        OnEnemyKilled = null;
+        OnEnemyReachedBase = null;
+    }
+
     private void Awake()
     {
         _transform = transform;
+    }
+
+    private void OnEnable()
+    {
+        _activeEnemies.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        _activeEnemies.Remove(this);
     }
 
     /// <summary>

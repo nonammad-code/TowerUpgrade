@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
 /// <summary>
-/// Управляет турелью: берёт параметры из TowerData, ищет ближайшего врага в радиусе
+/// Управляет турелью: берёт параметры из TowerData, ищет ближайшего врага на всей локации
 /// и стреляет пулями из Object Pool с частотой fireRate.
 /// </summary>
 public class TurretController : MonoBehaviour
@@ -18,23 +19,28 @@ public class TurretController : MonoBehaviour
     [Tooltip("Часть турели, которая поворачивается к цели (необязательно).")]
     [SerializeField] private Transform rotatingPart;
 
-    [Tooltip("Слой, на котором находятся враги.")]
-    [SerializeField] private LayerMask enemyLayer;
-
-    [Tooltip("Как часто (сек) искать ближайшего врага.")]
-    [SerializeField] private float retargetInterval = 0.2f;
-
     [Tooltip("Скорость поворота к цели (градусов в секунду).")]
     [SerializeField] private float rotationSpeed = 360f;
 
-    private const int MaxColliders = 32;
+    [Tooltip("Стрелять только когда голова повернута к цели с точностью до этого угла (градусы).")]
+    [SerializeField] private float aimTolerance = 8f;
 
-    private readonly Collider[] _hits = new Collider[MaxColliders];
+    [Header("Muzzle (ствол)")]
+    [Tooltip("Автоматически определить направление и конец ствола по размерам головы. " +
+             "Точка вылета пуль будет следовать за поворотом головы. Выключите, чтобы использовать firePoint.")]
+    [SerializeField] private bool autoDetectMuzzle = true;
+
+    [Tooltip("Высота ствола в долях высоты головы (0 — низ, 1 — верх). Для low_poly_turret_top_001 ≈ 0.4.")]
+    [SerializeField, Range(0f, 1f)] private float muzzleHeightFraction = 0.4f;
+
+    private Vector3 _barrelLocalDir = Vector3.forward;
+    private Vector3 _muzzleLocal;
+    private bool _hasAutoMuzzle;
+    private System.Action<Projectile> _releaseProjectile;
+
     private ObjectPool<Projectile> _pool;
     private Transform _target;
     private float _fireCooldown;
-    private float _retargetTimer;
-
     private void Awake()
     {
         if (towerData == null || towerData.projectileData == null || towerData.projectileData.prefab == null)
@@ -52,6 +58,52 @@ public class TurretController : MonoBehaviour
             collectionCheck: false,
             defaultCapacity: 10,
             maxSize: 100);
+        _releaseProjectile = _pool.Release;
+
+        SetupBarrel();
+    }
+
+    /// <summary>
+    /// Определяет, в какую сторону смотрит ствол и где его конец. Выполняется один раз в Awake.
+    /// Ствол — это выступающая в одну сторону часть головы, поэтому направление ствола —
+    /// от оси вращения (позиция головы) к центру габаритов головы, а конец — край габаритов.
+    /// </summary>
+    private void SetupBarrel()
+    {
+        if (rotatingPart == null) return;
+
+        Renderer[] renderers = rotatingPart.GetComponentsInChildren<Renderer>();
+        if (renderers.Length == 0) return;
+
+        Bounds bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+            bounds.Encapsulate(renderers[i].bounds);
+
+        Vector3 pivot = rotatingPart.position;
+        Vector3 offset = bounds.center - pivot;
+        offset.y = 0f;
+
+        if (offset.magnitude < 0.01f)
+        {
+            Debug.LogWarning($"{name}: не удалось определить направление ствола (голова симметрична). " +
+                             "Используется forward головы.", this);
+            _barrelLocalDir = Quaternion.Inverse(rotatingPart.rotation) * Vector3.ProjectOnPlane(rotatingPart.forward, Vector3.up).normalized;
+            return;
+        }
+
+        Vector3 dir = offset.normalized;
+        _barrelLocalDir = Quaternion.Inverse(rotatingPart.rotation) * dir;
+
+        if (!autoDetectMuzzle) return;
+
+        float extentAlong = Mathf.Abs(dir.x) * bounds.extents.x + Mathf.Abs(dir.z) * bounds.extents.z;
+        float distance = offset.magnitude + extentAlong;
+
+        Vector3 tip = new Vector3(pivot.x, 0f, pivot.z) + dir * distance;
+        tip.y = bounds.min.y + muzzleHeightFraction * bounds.size.y;
+
+        _muzzleLocal = rotatingPart.InverseTransformPoint(tip);
+        _hasAutoMuzzle = true;
     }
 
     private void OnDestroy()
@@ -62,19 +114,15 @@ public class TurretController : MonoBehaviour
     private void Update()
     {
         _fireCooldown -= Time.deltaTime;
-        _retargetTimer -= Time.deltaTime;
 
-        if (_retargetTimer <= 0f || !IsTargetValid(_target))
-        {
-            _target = FindNearestEnemy();
-            _retargetTimer = retargetInterval;
-        }
-
+        // Цель выбирается каждый кадр: это всегда ближайший враг на всей локации.
+        // Если текущая цель погибла или появился враг ближе — цель меняется сразу.
+        _target = FindNearestEnemy();
         if (_target == null) return;
 
-        AimAt(_target.position);
+        float aimError = AimAt(_target.position);
 
-        if (_fireCooldown <= 0f)
+        if (_fireCooldown <= 0f && aimError <= aimTolerance)
         {
             Shoot();
             _fireCooldown = 1f / Mathf.Max(0.01f, towerData.fireRate);
@@ -83,50 +131,61 @@ public class TurretController : MonoBehaviour
 
     private Transform FindNearestEnemy()
     {
-        int count = Physics.OverlapSphereNonAlloc(
-            transform.position, towerData.range, _hits, enemyLayer);
+        IReadOnlyList<EnemyController> enemies = EnemyController.ActiveEnemies;
+        Vector3 origin = transform.position;
 
         Transform nearest = null;
         float bestSqr = float.MaxValue;
 
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < enemies.Count; i++)
         {
-            float sqr = (_hits[i].transform.position - transform.position).sqrMagnitude;
+            Transform t = enemies[i].transform;
+            float sqr = (t.position - origin).sqrMagnitude;
             if (sqr < bestSqr)
             {
                 bestSqr = sqr;
-                nearest = _hits[i].transform;
+                nearest = t;
             }
         }
         return nearest;
     }
 
-    private bool IsTargetValid(Transform target)
+    /// <summary>
+    /// Поворачивает голову вокруг вертикальной оси так, чтобы ствол смотрел на точку.
+    /// Исходный наклон головы из модели сохраняется (вращение только по Y в мировом пространстве).
+    /// </summary>
+    /// <returns>Оставшийся угол до цели в градусах (0 — наведено).</returns>
+    private float AimAt(Vector3 point)
     {
-        if (target == null || !target.gameObject.activeInHierarchy) return false;
-        float rangeSqr = towerData.range * towerData.range;
-        return (target.position - transform.position).sqrMagnitude <= rangeSqr;
+        if (rotatingPart == null) return 0f;
+
+        Vector3 desired = point - rotatingPart.position;
+        desired.y = 0f;
+        if (desired.sqrMagnitude < 0.0001f) return 0f;
+
+        Vector3 current = rotatingPart.rotation * _barrelLocalDir;
+        current.y = 0f;
+
+        float angle = Vector3.SignedAngle(current, desired, Vector3.up);
+        float maxStep = rotationSpeed * Time.deltaTime;
+        float step = Mathf.Clamp(angle, -maxStep, maxStep);
+
+        rotatingPart.Rotate(Vector3.up, step, Space.World);
+        return Mathf.Abs(angle - step);
     }
 
-    private void AimAt(Vector3 point)
+    private Vector3 GetMuzzlePosition()
     {
-        if (rotatingPart == null) return;
-
-        Vector3 dir = point - rotatingPart.position;
-        dir.y = 0f;
-        if (dir.sqrMagnitude < 0.0001f) return;
-
-        Quaternion look = Quaternion.LookRotation(dir);
-        rotatingPart.rotation = Quaternion.RotateTowards(
-            rotatingPart.rotation, look, rotationSpeed * Time.deltaTime);
+        if (_hasAutoMuzzle) return rotatingPart.TransformPoint(_muzzleLocal);
+        return firePoint != null ? firePoint.position : transform.position;
     }
 
     private void Shoot()
     {
         Projectile projectile = _pool.Get();
-        Transform origin = firePoint != null ? firePoint : transform;
-        projectile.transform.SetPositionAndRotation(origin.position, origin.rotation);
-        projectile.Launch(towerData.projectileData, _target, p => _pool.Release(p));
+        Vector3 muzzle = GetMuzzlePosition();
+        projectile.transform.SetPositionAndRotation(muzzle, Quaternion.identity);
+        projectile.Launch(towerData.projectileData, _target, _releaseProjectile);
     }
 
     private Projectile CreateProjectile()
@@ -142,5 +201,11 @@ public class TurretController : MonoBehaviour
         if (towerData == null) return;
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, towerData.range);
+
+        if (Application.isPlaying)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(GetMuzzlePosition(), 0.05f);
+        }
     }
 }
