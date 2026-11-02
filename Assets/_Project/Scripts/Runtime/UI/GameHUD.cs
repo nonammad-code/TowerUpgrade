@@ -23,6 +23,7 @@ public class GameHUD : MonoBehaviour
     private Text _goldText;
     private Text _waveText;
     private Text _gameOverText;
+    private Text _victoryText;
     private EnemySpawner _spawner;
 
     private void Awake()
@@ -47,6 +48,7 @@ public class GameHUD : MonoBehaviour
         gameManager.OnGoldChanged += UpdateGold;
         gameManager.OnBaseHealthChanged += UpdateHealth;
         gameManager.OnGameOver += ShowGameOver;
+        gameManager.OnVictory += ShowVictory;
         if (_spawner != null) _spawner.OnWaveStarted += UpdateWave;
     }
 
@@ -65,6 +67,7 @@ public class GameHUD : MonoBehaviour
         gameManager.OnGoldChanged -= UpdateGold;
         gameManager.OnBaseHealthChanged -= UpdateHealth;
         gameManager.OnGameOver -= ShowGameOver;
+        gameManager.OnVictory -= ShowVictory;
         if (_spawner != null) _spawner.OnWaveStarted -= UpdateWave;
     }
 
@@ -104,6 +107,18 @@ public class GameHUD : MonoBehaviour
         _gameOverText.rectTransform.anchorMin = _gameOverText.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         _gameOverText.rectTransform.sizeDelta = new Vector2(1000f, 200f);
         _gameOverText.gameObject.SetActive(false);
+
+        // Экран победы.
+        _victoryText = UIBar.CreateText(canvasGo.transform, "VictoryText", 90, TextAnchor.MiddleCenter, new Color(1f, 0.9f, 0.3f));
+        _victoryText.text = "VICTORY!";
+        _victoryText.rectTransform.anchorMin = _victoryText.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        _victoryText.rectTransform.sizeDelta = new Vector2(1000f, 200f);
+        _victoryText.gameObject.SetActive(false);
+    }
+
+    private void ShowVictory()
+    {
+        _victoryText.gameObject.SetActive(true);
     }
 
     private void UpdateGold(int gold)

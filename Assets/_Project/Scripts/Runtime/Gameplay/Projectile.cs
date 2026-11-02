@@ -8,9 +8,7 @@ using UnityEngine;
 /// </summary>
 public class Projectile : MonoBehaviour
 {
-    [Tooltip("Допуск попадания: расстояние от пули до области попадания монстра (метры).")]
-    [SerializeField] private float hitRadius = 0.3f;
-
+    private float _hitRadius;
     private ProjectileData _data;
     private Action<Projectile> _release;
     private Transform _transform;
@@ -27,9 +25,11 @@ public class Projectile : MonoBehaviour
     /// <summary>
     /// Запускает пулю в заданном направлении. Вызывается турелью после получения из пула.
     /// </summary>
-    public void Launch(ProjectileData data, Vector3 direction, int damage, Action<Projectile> release)
+    /// <param name="hitRadius">Допуск попадания: расстояние от пули до области попадания монстра (метры).</param>
+    public void Launch(ProjectileData data, Vector3 direction, int damage, float hitRadius, Action<Projectile> release)
     {
         _data = data;
+        _hitRadius = hitRadius;
         _damage = damage;
         _release = release;
         _lifeLeft = data.lifeTime;
@@ -70,7 +70,7 @@ public class Projectile : MonoBehaviour
         var enemies = EnemyController.ActiveEnemies;
         Vector3 segment = to - from;
         float segmentSqr = segment.sqrMagnitude;
-        float radiusSqr = hitRadius * hitRadius;
+        float radiusSqr = _hitRadius * _hitRadius;
 
         for (int i = 0; i < enemies.Count; i++)
         {

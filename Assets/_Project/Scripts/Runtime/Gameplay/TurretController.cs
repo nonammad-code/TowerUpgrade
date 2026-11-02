@@ -39,6 +39,10 @@ public class TurretController : MonoBehaviour
     [Tooltip("Расстояние между осями соседних стволов (метры). Для low_poly_turret_002 ≈ 1.3.")]
     [SerializeField] private float barrelSpacing = 1.3f;
 
+    [Tooltip("Допуск попадания пули: расстояние от пули до коллайдера монстра (метры). " +
+             "Для многоствольных башен автоматически увеличивается на половину расстояния между стволами.")]
+    [SerializeField] private float bulletHitRadius = 0.3f;
+
     [Tooltip("Если rotatingPart не назначен, голова ищется среди дочерних объектов по этой части имени.")]
     [SerializeField] private string headNameContains = "top";
 
@@ -287,7 +291,18 @@ public class TurretController : MonoBehaviour
 
     private void Shoot(Vector3 aimPoint)
     {
-        int damage = Mathf.Max(1, Mathf.RoundToInt(towerData.damage * DamageMultiplier));
+        // Урон башни за выстрел задан строго и не зависит от числа стволов:
+        // он делится между пулями (остаток от деления достаётся первым пулям).
+        int count = MuzzleCount;
+        int totalDamage = Mathf.Max(1, Mathf.RoundToInt(towerData.damage * DamageMultiplier));
+        int perBullet = totalDamage / count;
+        int remainder = totalDamage % count;
+
+        // Пули идут параллельно, и крайние стволы смещены от линии прицела на половину расстояния между
+        // ними. Допуск попадания должен это покрывать, иначе пули пролетают мимо монстра по бокам.
+        float hitRadius = count > 1
+            ? Mathf.Max(bulletHitRadius, barrelSpacing * 0.5f + bulletHitRadius)
+            : bulletHitRadius;
 
         // Направление одно на все стволы: пули вылетают из середины своего ствола параллельно друг другу.
         Vector3 direction = aimPoint - GetMuzzleCenter();
@@ -295,11 +310,12 @@ public class TurretController : MonoBehaviour
             ? rotatingPart.rotation * _barrelLocalDir
             : transform.forward;
 
-        for (int i = 0; i < MuzzleCount; i++)
+        for (int i = 0; i < count; i++)
         {
             Projectile projectile = _pool.Get();
             projectile.transform.position = GetMuzzlePosition(i);
-            projectile.Launch(towerData.projectileData, direction, damage, _releaseProjectile);
+            int damage = perBullet + (i < remainder ? 1 : 0);
+            projectile.Launch(towerData.projectileData, direction, damage, hitRadius, _releaseProjectile);
         }
     }
 

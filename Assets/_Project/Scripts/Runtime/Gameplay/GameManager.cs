@@ -34,23 +34,67 @@ public class GameManager : MonoBehaviour
     /// <summary>База уничтожена.</summary>
     public event Action OnGameOver;
 
+    /// <summary>Победа: все волны отспавнены и все монстры уничтожены.</summary>
+    public bool IsVictory { get; private set; }
+
+    /// <summary>Игрок победил.</summary>
+    public event Action OnVictory;
+
+    private EnemySpawner _spawner;
+    private bool _allWavesSpawned;
+
     private void Awake()
     {
         Time.timeScale = 1f;
         Gold = startingGold;
         BaseHealth = maxBaseHealth;
+        _spawner = FindFirstObjectByType<EnemySpawner>();
     }
 
     private void OnEnable()
     {
-        EnemyController.OnEnemyKilled += AddGold;
-        EnemyController.OnEnemyReachedBase += DamageBase;
+        EnemyController.OnEnemyKilled += HandleEnemyKilled;
+        EnemyController.OnEnemyReachedBase += HandleEnemyReachedBase;
+        if (_spawner != null) _spawner.OnAllWavesSpawned += HandleAllWavesSpawned;
     }
 
     private void OnDisable()
     {
-        EnemyController.OnEnemyKilled -= AddGold;
-        EnemyController.OnEnemyReachedBase -= DamageBase;
+        EnemyController.OnEnemyKilled -= HandleEnemyKilled;
+        EnemyController.OnEnemyReachedBase -= HandleEnemyReachedBase;
+        if (_spawner != null) _spawner.OnAllWavesSpawned -= HandleAllWavesSpawned;
+    }
+
+    private void HandleEnemyKilled(int reward)
+    {
+        AddGold(reward);
+        CheckVictory();
+    }
+
+    private void HandleEnemyReachedBase(int damage)
+    {
+        DamageBase(damage);
+        CheckVictory();
+    }
+
+    private void HandleAllWavesSpawned()
+    {
+        _allWavesSpawned = true;
+        CheckVictory();
+    }
+
+    /// <summary>
+    /// Победа наступает, когда последняя волна отспавнена и на сцене не осталось монстров.
+    /// К моменту вызова погибший монстр уже убран из ActiveEnemies.
+    /// </summary>
+    private void CheckVictory()
+    {
+        if (IsVictory || IsGameOver || !_allWavesSpawned) return;
+        if (EnemyController.ActiveEnemies.Count > 0) return;
+
+        IsVictory = true;
+        Time.timeScale = 0f;
+        OnVictory?.Invoke();
     }
 
     /// <summary>

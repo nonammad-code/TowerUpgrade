@@ -84,7 +84,7 @@ public class TowerUpgradeManager : MonoBehaviour
     /// </summary>
     public bool TryUpgradeTower()
     {
-        if (!CanUpgradeTower || gameManager.IsGameOver) return false;
+        if (!CanUpgradeTower || (gameManager.IsGameOver || gameManager.IsVictory)) return false;
 
         TowerData next = tower.Data.nextLevel;
         if (next.towerPrefab == null || !next.towerPrefab.TryGetComponent(out TurretController _))
@@ -114,7 +114,7 @@ public class TowerUpgradeManager : MonoBehaviour
     /// </summary>
     public bool TryUpgradeFireRate()
     {
-        if (FireRateMaxed || gameManager.IsGameOver) return false;
+        if (FireRateMaxed || (gameManager.IsGameOver || gameManager.IsVictory)) return false;
         if (!gameManager.TrySpendGold(FireRateCost)) return false;
 
         FireRateLevel++;
@@ -128,7 +128,7 @@ public class TowerUpgradeManager : MonoBehaviour
     /// </summary>
     public bool TryUpgradeDamage()
     {
-        if (DamageMaxed || gameManager.IsGameOver) return false;
+        if (DamageMaxed || (gameManager.IsGameOver || gameManager.IsVictory)) return false;
         if (!gameManager.TrySpendGold(DamageCost)) return false;
 
         DamageLevel++;
