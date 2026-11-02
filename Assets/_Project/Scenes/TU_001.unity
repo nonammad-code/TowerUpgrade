@@ -187,6 +187,8 @@ GameObject:
   - component: {fileID: 137842188}
   - component: {fileID: 137842187}
   - component: {fileID: 137842186}
+  - component: {fileID: 137842190}
+  - component: {fileID: 137842189}
   m_Layer: 0
   m_Name: GameSystems
   m_TagString: Untagged
@@ -240,6 +242,45 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &137842189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137842185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 791829fae8d96489da1353179dd83ff7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeHUD
+  gameManager: {fileID: 0}
+  upgrades: {fileID: 0}
+  margin: {x: 30, y: 30}
+  buttonSize: {x: 360, y: 90}
+  spacing: 15
+--- !u!114 &137842190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137842185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f40f8b80c151840d5b4e005e176deddb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerUpgradeManager
+  gameManager: {fileID: 0}
+  tower: {fileID: 0}
+  fireRateBaseCost: 50
+  fireRateCostStep: 25
+  fireRateBonusPerLevel: 0.15
+  fireRateMaxLevel: 5
+  damageBaseCost: 50
+  damageCostStep: 25
+  damageBonusPerLevel: 0.2
+  damageMaxLevel: 5
 --- !u!1 &192801747
 GameObject:
   m_ObjectHideFlags: 0

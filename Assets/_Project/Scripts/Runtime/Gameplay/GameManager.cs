@@ -74,6 +74,16 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Полностью восстанавливает здоровье базы (например, после улучшения башни).
+    /// </summary>
+    public void RestoreBaseHealth()
+    {
+        if (IsGameOver) return;
+        BaseHealth = maxBaseHealth;
+        OnBaseHealthChanged?.Invoke(BaseHealth, maxBaseHealth);
+    }
+
+    /// <summary>
     /// Наносит урон базе.
     /// </summary>
     public void DamageBase(int amount)

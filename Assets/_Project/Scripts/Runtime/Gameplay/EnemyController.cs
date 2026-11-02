@@ -47,6 +47,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     [SerializeField] private bool rotateToMovement = true;
 
     private Transform _transform;
+    private Collider _collider;
     private EnemyData _data;
     private Transform[] _waypoints;
     private Action<EnemyController> _release;
@@ -65,7 +66,25 @@ public class EnemyController : MonoBehaviour, IDamageable
     private void Awake()
     {
         _transform = transform;
+        _collider = GetComponentInChildren<Collider>();
     }
+
+    /// <summary>
+    /// Текущая скорость движения (вектор, м/с). Нужна турелям для упреждения.
+    /// </summary>
+    public Vector3 Velocity { get; private set; }
+
+    /// <summary>
+    /// Область попадания монстра (границы коллайдера, а если его нет — небольшой бокс над позицией).
+    /// </summary>
+    public Bounds HitBounds => _collider != null
+        ? _collider.bounds
+        : new Bounds(_transform.position + Vector3.up * 0.5f, Vector3.one);
+
+    /// <summary>
+    /// Точка, в которую целятся турели (центр области попадания).
+    /// </summary>
+    public Vector3 AimPoint => HitBounds.center;
 
     private void OnEnable()
     {
@@ -98,6 +117,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         _currentHealth = data.maxHealth;
         _waypointIndex = 0;
         _transform.position = waypoints[0].position;
+        Velocity = Vector3.zero;
         _active = true;
     }
 
@@ -124,6 +144,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         Vector3 direction = toTarget.normalized;
         _transform.position = position + direction * step;
+        Velocity = direction * _data.moveSpeed;
 
         if (rotateToMovement)
             _transform.rotation = Quaternion.LookRotation(direction);
@@ -158,6 +179,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     private void Deactivate()
     {
         _active = false;
+        Velocity = Vector3.zero;
         _release?.Invoke(this);
     }
 }

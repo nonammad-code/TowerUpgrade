@@ -19,12 +19,6 @@ public class ProjectileData : ScriptableObject
     [SerializeField] public float lifeTime;
 
     /// <summary>
-    /// Базовый урон.
-    /// </summary>
-    [Tooltip("Базовый урон.")]
-    [SerializeField] public int baseDamage;
-
-    /// <summary>
     /// Ссылка на префаб пули (Low_poly_bullet_001).
     /// </summary>
     [Tooltip("Ссылка на префаб пули (Low_poly_bullet_001).")]

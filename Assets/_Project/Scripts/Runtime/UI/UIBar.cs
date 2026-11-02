@@ -57,6 +57,36 @@ public class UIBar
     }
 
     /// <summary>
+    /// Создаёт кнопку с центрированной подписью.
+    /// </summary>
+    public static Button CreateButton(Transform parent, string name, Vector2 size, Color color, out Text label)
+    {
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+        var rect = go.GetComponent<RectTransform>();
+        rect.SetParent(parent, false);
+        rect.sizeDelta = size;
+
+        var image = go.GetComponent<Image>();
+        image.color = Color.white;
+
+        var button = go.GetComponent<Button>();
+        button.targetGraphic = image;
+        var colors = button.colors;
+        colors.normalColor = color;
+        colors.highlightedColor = Color.Lerp(color, Color.white, 0.25f);
+        colors.pressedColor = Color.Lerp(color, Color.black, 0.25f);
+        colors.disabledColor = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+        button.colors = colors;
+
+        label = CreateText(rect, "Label", 26, TextAnchor.MiddleCenter, Color.white);
+        label.rectTransform.anchorMin = Vector2.zero;
+        label.rectTransform.anchorMax = Vector2.one;
+        label.rectTransform.offsetMin = Vector2.zero;
+        label.rectTransform.offsetMax = Vector2.zero;
+        return button;
+    }
+
+    /// <summary>
     /// Создаёт текстовую подпись (встроенный шрифт, без импорта TMP).
     /// </summary>
     public static Text CreateText(Transform parent, string name, int fontSize, TextAnchor anchor, Color color)

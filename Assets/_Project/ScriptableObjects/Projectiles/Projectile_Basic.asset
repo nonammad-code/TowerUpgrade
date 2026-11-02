@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectileData
   speed: 15
   lifeTime: 3
-  baseDamage: 10
   prefab: {fileID: 3119319782110183633, guid: d9fefa70affb84c00ad8802362895014, type: 3}

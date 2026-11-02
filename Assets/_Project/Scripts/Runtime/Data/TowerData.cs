@@ -19,6 +19,12 @@ public class TowerData : ScriptableObject
     [SerializeField] public float fireRate;
 
     /// <summary>
+    /// Базовый урон одной пули этой башни (улучшается вместе с башней).
+    /// </summary>
+    [Tooltip("Базовый урон одной пули этой башни.")]
+    [SerializeField] public int damage = 10;
+
+    /// <summary>
     /// Стоимость постройки башни.
     /// </summary>
     [Tooltip("Стоимость постройки башни.")]
@@ -29,6 +35,13 @@ public class TowerData : ScriptableObject
     /// </summary>
     [Tooltip("Стоимость улучшения на следующий уровень.")]
     [SerializeField] public int upgradeCost;
+
+    /// <summary>
+    /// Данные башни следующего уровня. Если не задано — это максимальный уровень.
+    /// Префаб следующего уровня (towerPrefab) должен содержать TurretController с собственным TowerData.
+    /// </summary>
+    [Tooltip("Данные башни следующего уровня. Пусто — максимальный уровень.")]
+    [SerializeField] public TowerData nextLevel;
 
     /// <summary>
     /// Ссылка на ScriptableObject пули, которой стреляет эта башня.

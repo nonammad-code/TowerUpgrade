@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TowerData
   range: 6
   fireRate: 0.45
+  damage: 10
   cost: 50
   upgradeCost: 75
+  nextLevel: {fileID: 11400000, guid: e9b38770c1c984d8d98586a1100656b0, type: 2}
   projectileData: {fileID: 11400000, guid: 87e4309ea9a01434b869382a2592ef78, type: 2}
   towerPrefab: {fileID: 8557094523620373942, guid: 0cc629a10af02473f88ebba6c91e3aff, type: 3}

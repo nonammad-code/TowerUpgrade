@@ -2,32 +2,39 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Пуля: летит к цели, наносит урон при попадании и возвращается в пул.
-/// Если цель пропала, летит прямо до конца времени жизни.
+/// Пуля: летит по прямой в заданном направлении (без самонаведения), поэтому пули из
+/// разных стволов остаются параллельными. При попадании в монстра наносит урон и
+/// возвращается в пул; если ни во что не попала — исчезает по истечении времени жизни.
 /// </summary>
 public class Projectile : MonoBehaviour
 {
-    [Tooltip("Расстояние до цели, при котором считается попадание.")]
+    [Tooltip("Допуск попадания: расстояние от пули до области попадания монстра (метры).")]
     [SerializeField] private float hitRadius = 0.3f;
 
     private ProjectileData _data;
-    private Transform _target;
     private Action<Projectile> _release;
+    private Transform _transform;
     private Vector3 _direction;
+    private int _damage;
     private float _lifeLeft;
     private bool _active;
 
+    private void Awake()
+    {
+        _transform = transform;
+    }
+
     /// <summary>
-    /// Запускает пулю. Вызывается турелью после получения из пула.
+    /// Запускает пулю в заданном направлении. Вызывается турелью после получения из пула.
     /// </summary>
-    public void Launch(ProjectileData data, Transform target, Action<Projectile> release)
+    public void Launch(ProjectileData data, Vector3 direction, int damage, Action<Projectile> release)
     {
         _data = data;
-        _target = target;
+        _damage = damage;
         _release = release;
         _lifeLeft = data.lifeTime;
-        _direction = (target.position - transform.position).normalized;
-        transform.rotation = Quaternion.LookRotation(_direction);
+        _direction = direction.normalized;
+        _transform.rotation = Quaternion.LookRotation(_direction);
         _active = true;
     }
 
@@ -42,33 +49,51 @@ public class Projectile : MonoBehaviour
             return;
         }
 
-        if (_target != null && _target.gameObject.activeInHierarchy)
+        Vector3 from = _transform.position;
+        Vector3 to = from + _direction * (_data.speed * Time.deltaTime);
+
+        if (TryHitEnemy(from, to))
         {
-            Vector3 toTarget = _target.position - transform.position;
-            if (toTarget.magnitude <= hitRadius)
-            {
-                Hit();
-                return;
-            }
-            _direction = toTarget.normalized;
-            transform.rotation = Quaternion.LookRotation(_direction);
+            Release();
+            return;
         }
 
-        transform.position += _direction * (_data.speed * Time.deltaTime);
+        _transform.position = to;
     }
 
-    private void Hit()
+    /// <summary>
+    /// Проверяет пересечение отрезка движения пули за кадр с областью попадания любого монстра.
+    /// Проверка по отрезку не даёт быстрой пуле «проскочить» сквозь монстра.
+    /// </summary>
+    private bool TryHitEnemy(Vector3 from, Vector3 to)
     {
-        if (_target.TryGetComponent(out IDamageable damageable))
-            damageable.TakeDamage(_data.baseDamage);
-        Release();
+        var enemies = EnemyController.ActiveEnemies;
+        Vector3 segment = to - from;
+        float segmentSqr = segment.sqrMagnitude;
+        float radiusSqr = hitRadius * hitRadius;
+
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            Bounds bounds = enemies[i].HitBounds;
+
+            float t = segmentSqr > 0f
+                ? Mathf.Clamp01(Vector3.Dot(bounds.center - from, segment) / segmentSqr)
+                : 0f;
+            Vector3 closest = from + segment * t;
+
+            if (bounds.SqrDistance(closest) <= radiusSqr)
+            {
+                enemies[i].TakeDamage(_damage);
+                return true;
+            }
+        }
+        return false;
     }
 
     private void Release()
     {
         if (!_active) return;
         _active = false;
-        _target = null;
         _release(this);
     }
 }
