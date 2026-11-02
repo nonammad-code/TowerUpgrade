@@ -25,6 +25,21 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// </summary>
     public static IReadOnlyList<EnemyController> ActiveEnemies => _activeEnemies;
 
+    /// <summary>
+    /// Вызывается при изменении здоровья этого монстра. Параметры — текущее и максимальное здоровье.
+    /// </summary>
+    public event Action<int, int> OnHealthChanged;
+
+    /// <summary>
+    /// Текущее здоровье.
+    /// </summary>
+    public int CurrentHealth => _currentHealth;
+
+    /// <summary>
+    /// Максимальное здоровье (из EnemyData).
+    /// </summary>
+    public int MaxHealth => _data != null ? _data.maxHealth : 0;
+
     [Tooltip("Расстояние до точки, при котором она считается достигнутой.")]
     [SerializeField] private float waypointReachDistance = 0.1f;
 
@@ -119,7 +134,9 @@ public class EnemyController : MonoBehaviour, IDamageable
     {
         if (!_active) return;
 
-        _currentHealth -= amount;
+        _currentHealth = Mathf.Max(0, _currentHealth - amount);
+        OnHealthChanged?.Invoke(_currentHealth, _data.maxHealth);
+
         if (_currentHealth <= 0)
             Die();
     }

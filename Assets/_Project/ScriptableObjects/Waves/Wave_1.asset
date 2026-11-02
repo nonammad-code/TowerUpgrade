@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WaveData
   enemies:
   - enemyType: {fileID: 11400000, guid: 1ed9bc302aa1542f993a8a0e0a96d6a0, type: 2}
-    count: 10
-    spawnDelay: 0
+    count: 3
+    spawnDelay: 0.1
   timeBetweenSpawns: 5
   timeBeforeNextWave: 1.5

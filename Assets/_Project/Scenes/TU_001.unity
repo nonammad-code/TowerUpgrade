@@ -176,6 +176,70 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 12c3e724718eb5e449c7ec3ac8c442d8, type: 3}
+--- !u!1 &137842185
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 137842188}
+  - component: {fileID: 137842187}
+  - component: {fileID: 137842186}
+  m_Layer: 0
+  m_Name: GameSystems
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &137842186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137842185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 837ef29c4ad6245f8b8aa3a53487ba2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameHUD
+  gameManager: {fileID: 0}
+  healthBarSize: {x: 360, y: 36}
+  healthBackColor: {r: 0, g: 0, b: 0, a: 0.6}
+  healthFillColor: {r: 0.85, g: 0.15, b: 0.15, a: 1}
+  margin: {x: 30, y: 30}
+--- !u!114 &137842187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137842185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c41d1e2b454e64fd29ac1dd0f7c34f25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  startingGold: 100
+  maxBaseHealth: 20
+--- !u!4 &137842188
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137842185}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &192801747
 GameObject:
   m_ObjectHideFlags: 0
@@ -582,6 +646,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   waves:
   - {fileID: 11400000, guid: 976b1998d3aef4dddb08ec07cd1be926, type: 2}
+  - {fileID: 11400000, guid: 976b1998d3aef4dddb08ec07cd1be926, type: 2}
   autoStart: 1
   waypoints:
   - {fileID: 1691491632}
@@ -802,3 +867,4 @@ SceneRoots:
   - {fileID: 4005926855857950017}
   - {fileID: 2049151187}
   - {fileID: 1149833833}
+  - {fileID: 137842188}

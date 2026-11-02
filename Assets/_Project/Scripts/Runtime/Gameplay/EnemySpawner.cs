@@ -42,6 +42,11 @@ public class EnemySpawner : MonoBehaviour
     public int CurrentWaveIndex { get; private set; } = -1;
 
     /// <summary>
+    /// Общее количество волн.
+    /// </summary>
+    public int WaveCount => waves != null ? waves.Length : 0;
+
+    /// <summary>
     /// Вызывается при старте волны. Параметр — индекс волны.
     /// </summary>
     public event Action<int> OnWaveStarted;
@@ -172,6 +177,8 @@ public class EnemySpawner : MonoBehaviour
         GameObject go = Instantiate(data.prefab, enemiesParent);
         if (!go.TryGetComponent(out EnemyController enemy))
             enemy = go.AddComponent<EnemyController>();
+        if (!go.TryGetComponent(out EnemyHealthBar _))
+            go.AddComponent<EnemyHealthBar>();
         go.SetActive(false);
         return enemy;
     }
