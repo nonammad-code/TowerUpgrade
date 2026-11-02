@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Tower_Basic
   m_EditorClassIdentifier: Assembly-CSharp::TowerData
   range: 6
-  fireRate: 1
+  fireRate: 0.45
   cost: 50
   upgradeCost: 75
   projectileData: {fileID: 11400000, guid: 87e4309ea9a01434b869382a2592ef78, type: 2}
