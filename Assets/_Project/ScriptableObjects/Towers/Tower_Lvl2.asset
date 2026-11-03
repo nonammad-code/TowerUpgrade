@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Tower_Lvl2
   m_EditorClassIdentifier: Assembly-CSharp::TowerData
   range: 6
-  fireRate: 0.45
-  damage: 10
+  fireRate: 0.65
+  damage: 20
   cost: 50
   upgradeCost: 75
   nextLevel: {fileID: 0}
